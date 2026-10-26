@@ -1,6 +1,6 @@
 # 私人 AI 陪伴 Harness
 
-煤球桌宠研究分支：[接入方案与实施顺序](docs/research/hedgehog-desktop-companion.md) · [12段96帧动画素材](assets/hedgehog/v1/README.md) · [验证记录](docs/research/hedgehog-desktop-validation.md)。当前提供动画预览与调研，桌面壳和 Codex 状态桥尚未安装。
+煤球桌宠开发版：运行 `npm run pet`，或双击 `desktop/start.command`。[启动、聊天与Codex接入](docs/implementation/hedgehog-desktop-companion.md) · [12段96帧动画素材](assets/hedgehog/v1/README.md) · [前期调研](docs/research/hedgehog-desktop-companion.md)。透明桌面窗口、独立bot聊天与Codex状态桥已实现；Codex hooks首次接入仍需在 `/hooks` 中信任。
 
 已实现可启动的单用户内测工程版：TypeScript strict、Node.js 24+、SQLite、自有有界执行器，AI SDK Core 只负责接入模型。支持 DeepSeek 和 Grok 4.3，默认使用 DeepSeek，附带简单的聊天／Trace 测试 Web。
 

@@ -54,6 +54,10 @@ export async function createApp(
     speech?: SpeechPort;
     bots?: BotManager;
     transcription?: TranscriptionPort;
+    /** Public, explicitly enumerated assets for the optional desktop client. */
+    staticAssets?: ReadonlyMap<string, { type: string; body: Buffer }>;
+    /** Cookies are host-scoped, not port-scoped: desktop must not replace the Web session. */
+    sessionCookieName?: string;
   } = {},
 ) {
   const app = Fastify({
@@ -102,12 +106,12 @@ export async function createApp(
     for (const request of transcriptionRequests.values())
       request.abort("shutdown");
   });
-  const sessionCookie = harness.config.memoryV3
-    ? "harness_session_cm3"
-    : "harness_session";
+  const sessionCookie =
+    options.sessionCookieName ??
+    (harness.config.memoryV3 ? "harness_session_cm3" : "harness_session");
   const session = randomBytes(32).toString("hex"),
     csrf = randomBytes(32).toString("hex");
-  const assets = new Map([
+  const assets = new Map<string, { type: string; body: Buffer }>([
     [
       "/",
       {
@@ -147,6 +151,8 @@ export async function createApp(
       type: type!,
       body: readFileSync(new URL(`../web/${file}`, import.meta.url)),
     });
+  for (const [path, asset] of options.staticAssets ?? [])
+    assets.set(path, asset);
   app.addHook("onRequest", async (req, reply) => {
     const host = req.headers.host ?? "";
     if (!/^(?:localhost|127\.0\.0\.1)(?::\d{1,5})?$/.test(host))

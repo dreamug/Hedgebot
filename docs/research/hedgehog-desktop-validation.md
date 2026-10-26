@@ -1,5 +1,7 @@
 # 煤球桌宠调研与素材验证
 
+本文是调研及动画素材阶段的记录；后续桌面开发与真实模型验证见[开发版使用说明](../implementation/hedgehog-desktop-companion.md)。
+
 日期：2026-10-26。分支 `research/hedgehog-companion`，源码基线 `6d4e5b0`。
 
 ## 已完成

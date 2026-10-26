@@ -1353,7 +1353,12 @@ export class Harness {
       .catch(() => {})
       .finally(() => {
         this.frontTask = undefined;
-        if (!this.closed) void this.tick();
+        // Input can arrive after an empty drain resolves but before this
+        // finalizer runs. CM3 has no background tick to rescue a lost wakeup.
+        if (!this.closed) {
+          if (this.store.byStatus("runs", ["queued"]).length) this.kick();
+          else void this.tick();
+        }
       });
   }
   private async drain() {

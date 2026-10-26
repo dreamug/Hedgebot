@@ -27,3 +27,7 @@ __pycache__/
 *.key
 # Rebuildable local art delivery archive
 /output/hedgehog/
+# Machine-local, reviewed Codex hook definitions and their backup
+/.codex/hooks.json
+/.codex/hooks.json.before-hedgehog
+/.codex/hooks.json.*.tmp

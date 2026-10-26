@@ -1,5 +1,7 @@
 # 煤球陪伴桌宠：接入调研与动画制作方案
 
+本文保留开发前的调研快照。后续桌面窗口、聊天和状态桥已实现，当前运行与验证以[开发版使用说明](../implementation/hedgehog-desktop-companion.md)为准。
+
 调研日期：2026-10-26。工作分支：`research/hedgehog-companion`。源码基线：`6d4e5b0`。
 
 ## 结论

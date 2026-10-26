@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-26",
+  "branch": "research/hedgehog-companion",
+  "unit": {
+    "command": "npm run verify",
+    "files": 54,
+    "tests": 829,
+    "passed": true,
+    "typecheck": true,
+    "build": true
+  },
+  "desktop": {
+    "passed": true,
+    "mode": "mock-model-real-electron-and-hook-process",
+    "checks": [
+      "draft-survives-reload",
+      "chat-response-and-bot-isolation",
+      "cancel-reply",
+      "focused-mode-and-mobile-layout",
+      "native-two-windows-and-sandbox",
+      "native-resize-64-and-128",
+      "alpha-hit-test-switches-native-click-through",
+      "four-requested-animations-from-separate-browser",
+      "native-pause-resume",
+      "real-hook-process-to-native-coding-animation",
+      "approval-stop-and-no-source-forwarding",
+      "closing-chat-keeps-pet"
+    ],
+    "browserErrors": []
+  },
+  "liveChat": {
+    "passed": true,
+    "model": "deepseek-flash",
+    "runStatus": "completed",
+    "elapsedMs": 7343,
+    "reply": "你好呀，我是煤球，一只暖栗棕色的像素小刺猬桌宠，喜欢陪你写代码，也喜欢听你讲讲今天的事。",
+    "calls": 5
+  },
+  "codex": {
+    "projectHooksConfigured": true,
+    "hookProcessAndBridgeTested": true,
+    "existingCodexChatTrust": "requires-user-review",
+    "existingCodexChatObserved": false,
+    "appServerCodingEntry": false
+  },
+  "manualRemaining": [
+    "actual-microphone-and-voice-experience",
+    "multi-display-real-drag-and-fullscreen-Spaces",
+    "one-hour-power-and-memory",
+    "signed-distribution-package"
+  ]
+}
