@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>认识煤球</title>
+    <link rel="stylesheet" href="/pet/pet.css" />
+  </head>
+  <body class="setup-page">
+    <main class="welcome-shell">
+      <header class="window-bar">
+        <span>煤球 · 第一次见面</span
+        ><button class="icon-button" id="window-close" aria-label="关闭">
+          ×
+        </button>
+      </header>
+      <section class="welcome-intro">
+        <canvas
+          id="welcome-coal"
+          width="128"
+          height="128"
+          aria-hidden="true"
+        ></canvas>
+        <p class="welcome-kicker">一只会听你说话的小刺猬</p>
+        <h1>你好，我是煤球。</h1>
+        <p>陪你写代码，也听你聊聊今天。<br />先帮我接上脑袋和声音吧。</p>
+      </section>
+      <form id="setup-form" class="setup-form">
+        <label for="deepseek-key"
+          ><span>DeepSeek <small>负责聊天</small></span></label
+        >
+        <div class="key-input">
+          <input
+            id="deepseek-key"
+            name="deepseek"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="填入你的 DeepSeek API Key"
+            required
+          /><button type="button" data-service="deepseek">获取 Key ↗</button>
+        </div>
+        <label for="fish-key"
+          ><span>Fish Audio <small>负责听和说</small></span></label
+        >
+        <div class="key-input">
+          <input
+            id="fish-key"
+            name="fish"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="填入你的 Fish Audio API Key"
+            required
+          /><button type="button" data-service="fish">获取 Key ↗</button>
+        </div>
+        <p class="setup-privacy">
+          Key 只保存在这台电脑，不进入聊天和 Git。文字交给 DeepSeek，语音交给
+          Fish Audio；聊天记录留在本地。
+        </p>
+        <button id="setup-save" class="primary-button" type="submit">
+          连接好啦，开始陪伴 <span>→</span>
+        </button>
+        <p id="setup-error" class="error" role="alert" hidden></p>
+      </form>
+      <footer class="welcome-footer">
+        <span>单击展开 · 按住说话</span><i>·</i><span>双击我，打打字</span>
+      </footer>
+    </main>
+    <script type="module" src="/pet/setup.js"></script>
+  </body>
+</html>

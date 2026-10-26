@@ -1,3 +1,4 @@
+import websocket from "@fastify/websocket";
 import { evidenceValid, resolveEvidence } from "./memory/evidence.js";
 import Fastify, { type FastifyRequest, type FastifyReply } from "fastify";
 import { BotManager, ORIGINAL_BOT_ID, CreateBotSchema } from "./bots.js";
@@ -8,7 +9,11 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { z, ZodError } from "zod";
 import { Harness } from "./harness.js";
 import { DomainError, THREAD_ID } from "./domain.js";
-import { ApiKeySchema, ProviderSchema } from "./model-config.js";
+import {
+  ApiKeySchema,
+  ProviderSchema,
+  ModelCredentials,
+} from "./model-config.js";
 import { abortable } from "./async.js";
 import {
   FishAudioSpeech,
@@ -51,6 +56,7 @@ function equal(a: unknown, b: string): boolean {
 export async function createApp(
   harness: Harness,
   options: {
+    realtimeSocket?: boolean;
     speech?: SpeechPort;
     bots?: BotManager;
     transcription?: TranscriptionPort;
@@ -66,6 +72,8 @@ export async function createApp(
     requestTimeout: 10000,
   });
   await app.register(cookie);
+  if (options.realtimeSocket)
+    await app.register(websocket, { options: { maxPayload: 32768 } });
   const selectedRequests = new WeakMap<FastifyRequest, Harness>();
   const requestedBot = (req: FastifyRequest): string => {
     const header = req.headers["x-bot-id"];
@@ -92,13 +100,17 @@ export async function createApp(
     selectedRequests.set(req, target);
     return target;
   };
+  const fishConfig = (target: Harness) => ({
+    ...target.config,
+    fishAudioApiKey: new ModelCredentials(target.config).fishAudioKey(),
+  });
   const speechFor = (target: Harness) =>
-    options.speech ?? new FishAudioSpeech(target.config);
+    options.speech ?? new FishAudioSpeech(fishConfig(target));
   const transcriptionFor = (target: Harness) =>
     options.transcription ??
     (target.config.transcriptionMode === "local"
       ? new LocalTranscription(target.config)
-      : new FishAudioTranscription(target.config));
+      : new FishAudioTranscription(fishConfig(target)));
   const speechRequests = new Set<AbortController>();
   const transcriptionRequests = new Map<Harness, AbortController>();
   app.addHook("preClose", async () => {
@@ -265,7 +277,9 @@ export async function createApp(
     z.object({ id: z.string().min(1).max(150) }).parse(req.params).id;
   app.get("/v1/voice", async (req) => ({
     provider: "fish-audio",
-    configured: Boolean(options.speech || selected(req).config.fishAudioApiKey),
+    configured: Boolean(
+      options.speech || fishConfig(selected(req)).fishAudioApiKey,
+    ),
     voiceId: selected(req).config.fishAudioVoiceId ?? FISH_VOICE_ID,
     voiceName: FISH_VOICE_NAME,
     transport: "http-streaming",
@@ -281,7 +295,7 @@ export async function createApp(
       remote,
       configured: Boolean(
         options.transcription ||
-        (remote ? h.config.fishAudioApiKey : localAsrConfigured(h.config)),
+        (remote ? fishConfig(h).fishAudioApiKey : localAsrConfigured(h.config)),
       ),
       maxSeconds: MAX_RECORDING_SECONDS,
       maxBytes: MAX_RECORDING_BYTES,
@@ -357,7 +371,9 @@ export async function createApp(
     },
   );
   app.get("/v1/voice-comparison", async (req) => ({
-    configured: Boolean(options.speech || selected(req).config.fishAudioApiKey),
+    configured: Boolean(
+      options.speech || fishConfig(selected(req)).fishAudioApiKey,
+    ),
     expectedEpoch: selected(req).store.settings().epoch,
     text: COMPARISON_TEXT,
     voiceId: FISH_VOICE_ID,

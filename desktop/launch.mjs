@@ -16,9 +16,11 @@ let owned = null,
 async function stop(code = 0) {
   if (stopping) return;
   stopping = true;
-  desktop?.kill("SIGTERM");
+  if (desktop?.connected) desktop.send({ type: "pet-quit" });
+  else desktop?.kill("SIGTERM");
   if (owned && owned.exitCode === null) {
-    owned.kill("SIGTERM");
+    if (owned.connected) owned.send({ type: "pet-shutdown" });
+    else owned.kill("SIGTERM");
     const limit = setTimeout(() => owned?.kill("SIGKILL"), 5000);
     limit.unref();
     await new Promise((done) => owned.once("exit", done));
@@ -99,7 +101,7 @@ try {
   desktop = spawn(electron, [join(root, "desktop/main.cjs")], {
     cwd: root,
     env,
-    stdio: "inherit",
+    stdio: ["ignore", "inherit", "inherit", "ipc"],
   });
   desktop.once("exit", (code) => void stop(code ?? 1));
   desktop.once("error", () => void stop(1));

@@ -1,5 +1,5 @@
 import { realpathSync } from "node:fs";
-import { relative, isAbsolute } from "node:path";
+import { relative, isAbsolute, sep } from "node:path";
 import { z } from "zod";
 
 export const HookEventSchema = z
@@ -53,7 +53,7 @@ export class CodexPetState {
   ingest(input: unknown) {
     const e = HookEventSchema.parse(input);
     const diff = relative(this.root, realpathSync(e.cwd));
-    if (diff === ".." || diff.startsWith("../") || isAbsolute(diff))
+    if (diff === ".." || diff.startsWith(`..${sep}`) || isAbsolute(diff))
       return { accepted: false, reason: "other_project" };
     if (Math.abs(this.now() - e.at) > 30_000)
       return { accepted: false, reason: "stale_event" };

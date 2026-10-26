@@ -8,6 +8,8 @@ const {
   screen,
   powerMonitor,
   session,
+  systemPreferences,
+  shell,
 } = require("electron");
 const {
   readFileSync,
@@ -42,12 +44,18 @@ let pet,
   tray,
   drag = null,
   quitting = false,
-  positionTimer;
+  positionTimer,
+  voicePanelOpen = false,
+  setupReady = false;
 function save() {
   if (pet && !pet.isDestroyed()) {
     const b = pet.getBounds();
-    prefs.x = b.x;
-    prefs.y = b.y;
+    const normal = {
+      width: Math.max(224, prefs.size + 112),
+      height: prefs.size + 108,
+    };
+    prefs.x = Math.round(b.x + (b.width - normal.width) / 2);
+    prefs.y = Math.round(b.y + b.height - normal.height);
   }
   const temp = `${preferencesPath}.${process.pid}.tmp`;
   writeFileSync(
@@ -63,20 +71,23 @@ function control(value) {
 }
 function trusted(event, petOnly = false) {
   const win = BrowserWindow.fromWebContents(event.sender);
-  const expected =
+  const allowed =
     win === pet
-      ? `${backend}/pet`
+      ? [`${backend}/pet`]
       : win === chat && !petOnly
-        ? `${backend}/pet/chat`
-        : null;
+        ? [`${backend}/pet/chat`, `${backend}/pet/setup`]
+        : [];
   return (
-    expected &&
     event.senderFrame === event.sender.mainFrame &&
-    event.senderFrame.url === expected
+    allowed.includes(event.senderFrame.url)
   );
 }
+
 function bounds(size) {
-  return { width: Math.max(224, size + 112), height: size + 108 };
+  return {
+    width: voicePanelOpen ? 344 : Math.max(224, size + 112),
+    height: size + (voicePanelOpen ? 310 : 108),
+  };
 }
 function clamp(rect, area) {
   return {
@@ -89,9 +100,49 @@ function clamp(rect, area) {
     ),
   };
 }
-function openChat() {
+async function openPage(page) {
+  const url = `${backend}/pet/${page}`;
+  if (chat.webContents.getURL() !== url) await chat.loadURL(url);
   chat.show();
   chat.focus();
+}
+async function readSetupReady() {
+  const boot = await fetch(`${backend}/bootstrap?botId=meiqiu`, {
+    signal: AbortSignal.timeout(3000),
+  });
+  const cookie = boot.headers.get("set-cookie")?.split(";")[0];
+  if (!cookie) throw Error("local_session_missing");
+  const response = await fetch(`${backend}/v1/pet/setup`, {
+    headers: { cookie },
+    signal: AbortSignal.timeout(3000),
+  });
+  if (!response.ok) throw Error("local_setup_unavailable");
+  return (await response.json()).ready === true;
+}
+function openChat() {
+  void readSetupReady()
+    .then((ready) => {
+      setupReady = ready;
+      return openPage(ready ? "chat" : "setup");
+    })
+    .catch(() => {});
+}
+function setVoicePanel(value) {
+  if (value === voicePanelOpen) return;
+  const old = pet.getBounds();
+  voicePanelOpen = value;
+  const next = bounds(prefs.size);
+  pet.setBounds(
+    clamp(
+      {
+        ...next,
+        x: old.x + (old.width - next.width) / 2,
+        y: old.y + old.height - next.height,
+      },
+      screen.getDisplayMatching(old).workArea,
+    ),
+  );
+  if (value) pet.setIgnoreMouseEvents(false);
 }
 function setSize(size) {
   if (![64, 96, 128, 192].includes(size)) return;
@@ -159,7 +210,13 @@ function menu() {
 function guard(win) {
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   win.webContents.on("will-navigate", (event, url) => {
-    if (![`${backend}/pet`, `${backend}/pet/chat`].includes(url))
+    if (
+      ![
+        `${backend}/pet`,
+        `${backend}/pet/chat`,
+        `${backend}/pet/setup`,
+      ].includes(url)
+    )
       event.preventDefault();
   });
   win.webContents.on("will-attach-webview", (event) => event.preventDefault());
@@ -172,13 +229,24 @@ else {
   app
     .whenReady()
     .then(async () => {
+      const microphoneAllowed = (contents) =>
+        contents === pet?.webContents &&
+        contents.getURL() === `${backend}/pet` &&
+        pet.isVisible() &&
+        voicePanelOpen;
+      session.defaultSession.setPermissionCheckHandler(
+        (contents, permission, origin, details) =>
+          permission === "media" &&
+          origin.replace(/\/$/, "") === backend &&
+          details.mediaType !== "video" &&
+          microphoneAllowed(contents),
+      );
       session.defaultSession.setPermissionRequestHandler(
-        (contents, permission, callback) =>
+        (contents, permission, callback, details) =>
           callback(
-            contents === chat?.webContents &&
-              permission === "media" &&
-              contents.getURL() === `${backend}/pet/chat` &&
-              chat.isVisible(),
+            permission === "media" &&
+              !details.mediaTypes?.includes("video") &&
+              microphoneAllowed(contents),
           ),
       );
       const area = screen.getPrimaryDisplay().workArea,
@@ -210,12 +278,13 @@ else {
         webPreferences,
       });
       chat = new BrowserWindow({
-        width: 560,
-        height: 800,
+        width: 460,
+        height: 720,
+        frame: false,
         minWidth: 380,
         minHeight: 560,
         title: "和煤球聊聊天",
-        backgroundColor: "#f8f8f7",
+        backgroundColor: "#f7f5f2",
         show: false,
         webPreferences,
       });
@@ -245,6 +314,45 @@ else {
           pet.setBounds(
             clamp(pet.getBounds(), screen.getPrimaryDisplay().workArea),
           );
+      });
+      ipcMain.on("coal:hide-chat", (event) => {
+        if (trusted(event)) chat.hide();
+      });
+      ipcMain.on("coal:open-setup", (event) => {
+        if (trusted(event)) void openPage("setup");
+      });
+      ipcMain.on("coal:setup-done", async (event) => {
+        if (!trusted(event)) return;
+        try {
+          setupReady = await readSetupReady();
+          if (setupReady) await openPage("chat");
+        } catch {}
+      });
+      ipcMain.on("coal:service", (event, service) => {
+        if (!trusted(event)) return;
+        const url = {
+          deepseek: "https://platform.deepseek.com/",
+          fish: "https://fish.audio/",
+        }[service];
+        if (typeof url === "string") void shell.openExternal(url);
+      });
+      ipcMain.handle("coal:microphone", async (event) => {
+        if (!trusted(event, true) || !voicePanelOpen) return false;
+        if (process.platform === "darwin")
+          return systemPreferences.askForMediaAccess("microphone");
+        return (
+          systemPreferences.getMediaAccessStatus("microphone") !== "denied"
+        );
+      });
+      ipcMain.on("coal:voice-panel", (event, value) => {
+        if (trusted(event, true)) setVoicePanel(value === true);
+      });
+      ipcMain.on("coal:open-voice", (event) => {
+        if (trusted(event)) {
+          pet.show();
+          pet.focus();
+          control({ type: "voice-start" });
+        }
       });
       ipcMain.on("coal:open-chat", (event) => {
         if (trusted(event)) openChat();
@@ -305,10 +413,15 @@ else {
         powerMonitor.on(name, () =>
           control({ type: "suspended", value: false }),
         );
+      setupReady = await readSetupReady();
       await Promise.all([
         pet.loadURL(`${backend}/pet`),
-        chat.loadURL(`${backend}/pet/chat`),
+        chat.loadURL(`${backend}/pet/${setupReady ? "chat" : "setup"}`),
       ]);
+      if (!setupReady) {
+        chat.show();
+        chat.focus();
+      }
       const icon = nativeImage
         .createFromPath(join(root, "assets/hedgehog/v1/frames/idle/00.png"))
         .resize({ width: 18, height: 18 });
@@ -319,13 +432,16 @@ else {
       tray.on("right-click", () => tray.popUpContextMenu(menu()));
       pet.showInactive();
       if (process.platform === "darwin") app.dock?.hide();
-      console.log("煤球桌宠已就绪。单击煤球聊天，拖动移动，右键打开菜单。");
+      console.log("煤球桌宠已就绪。单击展开语音，按住按钮说话；双击文字聊天。");
     })
     .catch(() => {
       console.error("桌宠窗口启动失败。");
       app.exit(1);
     });
 }
+process.on("message", (message) => {
+  if (message?.type === "pet-quit") app.quit();
+});
 app.on("before-quit", () => {
   quitting = true;
   clearTimeout(positionTimer);

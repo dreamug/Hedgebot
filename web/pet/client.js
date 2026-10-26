@@ -2,6 +2,8 @@ export class PetClient extends EventTarget {
   boot = null;
   snapshot = null;
   codex = null;
+  setup = null;
+  preferences = { voiceEnabled: true, autoSpeak: true };
   connected = false;
   controller = new AbortController();
   closed = false;
@@ -31,6 +33,8 @@ export class PetClient extends EventTarget {
     });
     if (response.status === 401 && retry && method === "GET") {
       await this.bootstrap();
+      this.setup = await this.request("/v1/pet/setup");
+      this.preferences = this.setup.preferences;
       return this.request(path, method, body, false);
     }
     const data = await response.json();
@@ -55,6 +59,8 @@ export class PetClient extends EventTarget {
   async start() {
     try {
       await this.bootstrap();
+      this.setup = await this.request("/v1/pet/setup");
+      this.preferences = this.setup.preferences;
       await this.refresh();
       if (this.closed) return;
       this.connect();
@@ -149,6 +155,8 @@ export class PetClient extends EventTarget {
     if (this.closed) return;
     try {
       this.codex = await this.request("/v1/pet/codex");
+      this.setup = this.codex.setup;
+      this.preferences = this.codex.preferences;
       this.changed();
     } catch {
       this.codex = null;
@@ -196,6 +204,7 @@ export function errorText(error) {
       revision_conflict: "设置刚有变化，请重新操作。",
       speech_key_missing: "尚未配置朗读服务。",
       speech_busy: "上一段声音正在结束，稍等一下。",
+      pet_setup_required: "先连接 DeepSeek 和 Fish Audio，就能开始陪伴。",
     }[error.message] ??
     (error.status
       ? `这次没能完成，请稍后再试（${error.message}）。`

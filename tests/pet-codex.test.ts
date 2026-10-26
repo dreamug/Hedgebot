@@ -161,7 +161,11 @@ describe("Codex煤球状态边界", () => {
     try {
       mkdirSync(join(dir, "project"));
       mkdirSync(join(dir, "other"));
-      symlinkSync(join(dir, "other"), join(dir, "project/link"));
+      symlinkSync(
+        join(dir, "other"),
+        join(dir, "project/link"),
+        process.platform === "win32" ? "junction" : "dir",
+      );
       const state = new CodexPetState(join(dir, "project"), () => at);
       expect(
         state.ingest(event({ cwd: join(dir, "project/link") })).accepted,

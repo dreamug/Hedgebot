@@ -17,6 +17,11 @@ const dataDir = resolve(
   process.env.PET_DATA_DIR ?? join(root, "local-data/hedgehog-app"),
 );
 const quote = (value) => "'" + value.replaceAll("'", "'\\''") + "'";
+// Windows hooks use an encoded PowerShell command: paths with spaces, apostrophes,
+// percent signs and non-ASCII characters never become shell syntax.
+const psQuote = (value) => "'" + value.replaceAll("'", "''") + "'";
+const ps = `& ${psQuote(process.execPath)} ${psQuote(join(root, "scripts/hedgehog/codex-hook.mjs"))} --config ${psQuote(join(dataDir, "codex-bridge.json"))}`;
+const commandWindows = `powershell.exe -NoLogo -NoProfile -NonInteractive -EncodedCommand ${Buffer.from(ps, "utf16le").toString("base64")}`;
 const command = `${quote(process.execPath)} ${quote(join(root, "scripts/hedgehog/codex-hook.mjs"))} --config ${quote(join(dataDir, "codex-bridge.json"))}`;
 const events = [
   "SessionStart",
@@ -43,7 +48,12 @@ for (const event of events) {
           !(
             handler.type === "command" &&
             handler.statusMessage === "煤球：同步工作状态" &&
-            String(handler.command).includes("scripts/hedgehog/codex-hook.mjs")
+            (String(handler.command).includes(
+              "scripts/hedgehog/codex-hook.mjs",
+            ) ||
+              String(handler.command).includes(
+                "scripts\\hedgehog\\codex-hook.mjs",
+              ))
           ),
       ),
     }))
@@ -54,7 +64,8 @@ for (const event of events) {
         {
           type: "command",
           command,
-          timeout: 1,
+          commandWindows,
+          timeout: 3,
           statusMessage: "煤球：同步工作状态",
         },
       ],

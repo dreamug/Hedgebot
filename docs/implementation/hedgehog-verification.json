@@ -3,8 +3,8 @@
   "branch": "research/hedgehog-companion",
   "unit": {
     "command": "npm run verify",
-    "files": 54,
-    "tests": 829,
+    "files": 55,
+    "tests": 834,
     "passed": true,
     "typecheck": true,
     "build": true
@@ -13,6 +13,8 @@
     "passed": true,
     "mode": "mock-model-real-electron-and-hook-process",
     "checks": [
+      "native-first-launch-shows-key-setup-without-navigation-race",
+      "first-launch-requires-two-private-keys",
       "draft-survives-reload",
       "chat-response-and-bot-isolation",
       "cancel-reply",
@@ -20,13 +22,24 @@
       "native-two-windows-and-sandbox",
       "native-resize-64-and-128",
       "alpha-hit-test-switches-native-click-through",
+      "single-click-only-reveals-hold-button",
+      "microphone-denial-does-not-send-or-open-asr",
+      "release-during-permission-does-not-start-late-recording",
+      "microphone-api-worklet-pcm-live-drafts-release-send-and-mp3-playing-event",
+      "cancel-recording-does-not-send",
+      "asr-disconnect-stops-input-without-sending",
+      "double-click-opens-text-without-recording",
       "four-requested-animations-from-separate-browser",
       "native-pause-resume",
       "real-hook-process-to-native-coding-animation",
       "approval-stop-and-no-source-forwarding",
       "closing-chat-keeps-pet"
     ],
-    "browserErrors": []
+    "browserErrors": [],
+    "microphone": "Chromium fake audio device; real getUserMedia and AudioWorklet",
+    "transcription": "local deterministic Fish protocol fixture",
+    "speech": "valid MP3 fixture, asserted playing event",
+    "platform": "darwin"
   },
   "liveChat": {
     "passed": true,
@@ -44,9 +57,40 @@
     "appServerCodingEntry": false
   },
   "manualRemaining": [
-    "actual-microphone-and-voice-experience",
+    "physical-microphone-on-user-device-and-noise-environments",
+    "windows-real-device-and-CI-run",
     "multi-display-real-drag-and-fullscreen-Spaces",
     "one-hour-power-and-memory",
     "signed-distribution-package"
-  ]
+  ],
+  "liveVoice": {
+    "passed": true,
+    "source": "你好煤球，我今天在写代码，想让你陪我一起找一找问题，然后我们再聊聊今天发生的事。",
+    "transcript": "你好，煤球。我今天在写代码，想让你陪我一起找一找问题，然后我们再聊聊今天发生的事。",
+    "firstDraftMs": 3355,
+    "releaseToFinalMs": 276,
+    "elapsedMs": 9851,
+    "chat": {
+      "model": "deepseek-flash",
+      "status": "completed",
+      "elapsedMs": 2127,
+      "reply": "好呀，我把小爪子收好，陪你一块儿看。你把报错或者相关代码贴给我，我们先找问题；找完再慢慢聊今天的事。"
+    },
+    "speech": {
+      "provider": "Fish Audio",
+      "mp3Bytes": 142105,
+      "elapsedMs": 4533
+    },
+    "audioSeconds": 7.0791875,
+    "liveDraftBeforeRelease": true,
+    "provider": "Fish Audio transcribe-stream-1",
+    "input": "synthetic speech, no human microphone recording"
+  },
+  "windows": {
+    "sourceCompatibilityChanges": true,
+    "doubleClickLauncher": "desktop/start.cmd",
+    "ciWorkflow": ".github/workflows/hedgehog-desktop.yml",
+    "actualWindowsRun": false,
+    "remoteCIRun": false
+  }
 }

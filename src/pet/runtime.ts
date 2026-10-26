@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { realpathSync } from "node:fs";
+import { realpathSync, existsSync, readFileSync } from "node:fs";
 import { z } from "zod";
 import { BotManager, ORIGINAL_BOT_ID } from "../bots.js";
 import type { AppConfig } from "../config.js";
@@ -11,12 +11,23 @@ import { COAL_BOT_ID, COAL_PERSONA } from "./persona.js";
 import { petAssets } from "./assets.js";
 import type { ModelPort } from "../model.js";
 import { PetMockModel } from "./mock-model.js";
+import { ModelCredentials, ApiKeySchema } from "../model-config.js";
+import { DomainError } from "../domain.js";
+import type { SpeechPort } from "../speech.js";
+import { registerPetVoice } from "./voice.js";
+import type WebSocket from "ws";
+import type { TranscriptionPort } from "../transcription.js";
 
 export async function createPetRuntime(
   config: AppConfig,
   projectRoot: string,
   bridgePort = 0,
-  options: { modelFactory?: () => ModelPort } = {},
+  options: {
+    modelFactory?: () => ModelPort;
+    speech?: SpeechPort;
+    transcription?: TranscriptionPort;
+    openRealtime?: (key: string) => WebSocket;
+  } = {},
 ) {
   const release = acquireInstance(config.dataDir);
   let bots: BotManager | undefined;
@@ -34,6 +45,19 @@ export async function createPetRuntime(
         COAL_BOT_ID,
       );
     const coal = bots.get(COAL_BOT_ID);
+    const credentials = new ModelCredentials(coal.config);
+    const Preferences = z
+      .object({
+        voiceEnabled: z.boolean().default(true),
+        autoSpeak: z.boolean().default(true),
+      })
+      .strict();
+    const preferencesPath = join(config.dataDir, "pet-preferences.json");
+    let preferences = Preferences.parse(
+      existsSync(preferencesPath)
+        ? JSON.parse(readFileSync(preferencesPath, "utf8"))
+        : {},
+    );
     bridge = await createCodexBridge(projectRoot, bridgePort);
     const state = bridge.state;
     const ControlSchema = z.discriminatedUnion("type", [
@@ -61,15 +85,66 @@ export async function createPetRuntime(
       [];
     app = await createApp(bots.get(ORIGINAL_BOT_ID), {
       bots,
+      realtimeSocket: true,
       staticAssets: petAssets(
         projectRoot,
         config.modelMode === "mock" ? "mock" : "live",
       ),
       sessionCookieName: "harness_pet_session",
+      speech: options.speech,
+      transcription: options.transcription,
+    });
+    await registerPetVoice(
+      app,
+      coal,
+      credentials,
+      () => preferences.voiceEnabled,
+      options.openRealtime,
+    );
+    app.get("/v1/pet/setup", async () => ({
+      ...credentials.petSetupStatus(),
+      preferences,
+    }));
+    app.patch("/v1/pet/preferences", async (req) => {
+      const patch = Preferences.partial().parse(req.body);
+      preferences = Preferences.parse({ ...preferences, ...patch });
+      writePrivateJson(preferencesPath, preferences);
+      return preferences;
+    });
+    app.put("/v1/pet/setup", async (req) => {
+      const input = z
+        .object({
+          deepseekKey: ApiKeySchema.optional(),
+          fishAudioKey: ApiKeySchema.optional(),
+        })
+        .strict()
+        .parse(req.body);
+      for (const run of coal.store.byStatus("runs", ["queued", "running"]))
+        coal.cancel(run.id);
+      const status = credentials.savePetKeys(
+        input.deepseekKey,
+        input.fishAudioKey,
+      );
+      coal.updateSettings({
+        expectedRevision: coal.store.settings().revision,
+        model: "deepseek-flash",
+        remoteDisclosureAcknowledged: true,
+      });
+      return { ...status, preferences };
+    });
+    app.addHook("preHandler", async (req) => {
+      if (
+        req.method === "POST" &&
+        req.routeOptions.url === "/v1/threads/:id/inputs" &&
+        !credentials.petSetupStatus().ready
+      )
+        throw new DomainError("pet_setup_required", 409);
     });
     app.get("/v1/pet/codex", async () => ({
       ...state.snapshot(),
       controls: controls.filter((c) => Date.now() - c.issuedAt < 30_000),
+      setup: credentials.petSetupStatus(),
+      preferences,
     }));
     app.post("/v1/pet/control", async (req) => {
       const input = ControlSchema.parse(req.body);

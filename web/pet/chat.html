@@ -8,6 +8,16 @@
   </head>
   <body class="chat-page">
     <main class="chat-shell">
+      <header class="window-bar">
+        <span>煤球 · 一直在你旁边</span
+        ><button
+          id="window-close"
+          class="icon-button"
+          aria-label="收起聊天窗口"
+        >
+          ×
+        </button>
+      </header>
       <header class="chat-header">
         <canvas
           id="avatar"
@@ -16,39 +26,27 @@
           aria-hidden="true"
         ></canvas>
         <div>
-          <h1>煤球</h1>
-          <p id="connection" aria-live="polite">正在连接…</p>
+          <h1>煤球 <span>你的刺猬小伙伴</span></h1>
+          <p id="connection" aria-live="polite">正在走到你身边…</p>
         </div>
-        <button id="show-pet" hidden>显示桌宠</button>
+        <button id="show-pet" class="quiet-button" hidden>找煤球</button>
       </header>
-      <section class="companion-tools" aria-label="陪伴设置">
-        <label><input type="checkbox" id="focus" /> 安静陪工</label
-        ><label
-          >大小
-          <select id="pet-size">
-            <option>64</option>
-            <option>96</option>
-            <option selected>128</option>
-            <option>192</option>
-          </select></label
-        ><button data-fun="fruit">喂果子</button
-        ><button data-fun="heart">比心</button
-        ><button data-fun="sign">举牌</button
-        ><button data-fun="cake">背蛋糕</button>
-      </section>
       <section class="codex-status">
-        <span id="codex-label">Codex尚未连接</span
-        ><select id="codex-session" aria-label="跟随的Codex会话">
-          <option value="">暂不跟随</option></select
-        ><small id="codex-help"
-          >连接后在这里选择要陪伴的会话。无需共享代码正文。</small
-        >
-      </section>
-      <section id="disclosure" class="disclosure" hidden>
-        <p>
-          煤球使用项目现有模型回复。你发送的聊天及相关记忆会交给当前模型服务；记录保存在煤球独立的本地空间。
-        </p>
-        <button id="allow-chat">开始和煤球聊天</button>
+        <span class="code-symbol" aria-hidden="true">&lt;/&gt;</span
+        ><span id="codex-label">Codex 尚未连接</span>
+        <details id="codex-details">
+          <summary aria-label="选择陪伴的 Codex 会话">连接设置</summary>
+          <div class="small-popover">
+            <label for="codex-session">陪伴这个会话</label
+            ><select id="codex-session">
+              <option value="">暂不跟随</option>
+            </select>
+            <p class="hint">
+              运行 npm run pet:hooks 后，在 Codex 的 /hooks
+              中信任本地连接。只接收工作状态。
+            </p>
+          </div>
+        </details>
       </section>
       <div
         id="messages"
@@ -56,57 +54,76 @@
         role="log"
         aria-label="聊天记录"
       ></div>
-      <p id="run-status" class="run-status" aria-live="polite"></p>
-      <form id="chat-form">
-        <label class="sr-only" for="draft">想和煤球说的话</label
-        ><textarea
-          id="draft"
-          rows="3"
-          maxlength="4000"
-          placeholder="说点什么吧，我在呢。Enter发送，Shift+Enter换行。"
-        ></textarea>
-        <div class="send-controls">
-          <button type="button" id="voice-record">语音输入</button
-          ><button type="button" id="voice-record-cancel" hidden>
-            取消录音</button
-          ><button type="button" id="voice-stop" disabled>停止朗读</button
-          ><span class="grow"></span
-          ><button type="button" id="cancel-run" hidden>停止回复</button
-          ><button type="submit" id="send" disabled>发送</button>
-        </div>
-        <p id="voice-input-status" class="hint"></p>
-        <p id="voice-input-help" class="hint"></p>
-      </form>
-      <p id="error" class="error" role="alert" hidden></p>
-      <details class="settings">
-        <summary>模型与连接</summary>
-        <form id="model-form">
-          <label
-            >聊天模型
-            <select id="model">
-              <option value="deepseek-flash">DeepSeek</option>
-              <option value="grok-4.3">Grok</option>
-            </select></label
-          ><label
-            >此模型的API Key
-            <input
-              type="password"
-              id="model-key"
-              autocomplete="off"
-              placeholder="已配置时可留空" /></label
-          ><button type="submit">保存</button>
+      <div class="composer-wrap">
+        <p id="run-status" class="run-status" aria-live="polite"></p>
+        <p id="error" class="error" role="alert" hidden></p>
+        <form id="chat-form">
+          <label class="sr-only" for="draft">想和煤球说的话</label
+          ><textarea
+            id="draft"
+            rows="2"
+            maxlength="4000"
+            placeholder="今天过得怎么样？我在呢。"
+          ></textarea>
+          <div class="send-controls">
+            <button type="button" id="voice-record" class="quiet-button">
+              语音聊天</button
+            ><button
+              type="button"
+              id="voice-stop"
+              class="quiet-button"
+              disabled
+            >
+              停止朗读</button
+            ><span class="grow"></span
+            ><button type="button" id="cancel-run" hidden class="quiet-button">
+              停止回复</button
+            ><button type="submit" id="send" class="primary-button" disabled>
+              发送 ↑
+            </button>
+          </div>
         </form>
-        <p class="hint">
-          Key只保存在煤球的本机私有文件中。语音沿用项目后台配置。
-        </p>
-        <p id="mode" class="hint"></p>
-        <p class="hint">
-          Codex连接：运行项目里的“pet:hooks”后，在Codex的 /hooks
-          中审核并信任。收到事件后可在上方选择会话。
-        </p>
-      </details>
+        <p class="composer-hint">Enter 发送 · Shift + Enter 换行</p>
+      </div>
+      <footer class="chat-footer">
+        <div class="little-actions">
+          <button data-fun="fruit" title="给煤球一颗大果子">喂果子</button
+          ><button data-fun="heart" title="给你一颗桃心">比心</button
+          ><button data-fun="cake" title="背上小蛋糕">蛋糕</button
+          ><button data-fun="sign" title="飞飞爱你">举牌</button>
+        </div>
+        <details class="settings">
+          <summary>陪伴设置</summary>
+          <div class="settings-panel">
+            <h2>按你的习惯陪伴</h2>
+            <label class="setting-row"
+              ><span>语音功能<small>按住按钮说话</small></span
+              ><input type="checkbox" id="voice-enabled" checked /></label
+            ><label class="setting-row"
+              ><span>自动语音回复<small>收到新回复时读给你听</small></span
+              ><input type="checkbox" id="auto-speak" checked /></label
+            ><label class="setting-row"
+              ><span>安静陪工<small>收起桌面提示气泡</small></span
+              ><input type="checkbox" id="focus" /></label
+            ><label class="setting-row"
+              ><span>煤球的大小</span
+              ><select id="pet-size">
+                <option>64</option>
+                <option>96</option>
+                <option selected>128</option>
+                <option>192</option>
+              </select></label
+            ><button id="edit-keys" class="quiet-button">
+              修改 DeepSeek / Fish Audio Key →
+            </button>
+            <p id="mode" class="hint"></p>
+            <p class="hint">
+              聊天记录与 Key 留在本机。聊天和语音需要连接服务商。
+            </p>
+          </div>
+        </details>
+      </footer>
     </main>
-    <script src="/voice-input.js"></script>
     <script src="/run-status.js"></script>
     <script type="module" src="/pet/chat.js"></script>
   </body>

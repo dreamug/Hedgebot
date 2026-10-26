@@ -1,6 +1,6 @@
 # 私人 AI 陪伴 Harness
 
-煤球桌宠开发版：运行 `npm run pet`，或双击 `desktop/start.command`。[启动、聊天与Codex接入](docs/implementation/hedgehog-desktop-companion.md) · [12段96帧动画素材](assets/hedgehog/v1/README.md) · [前期调研](docs/research/hedgehog-desktop-companion.md)。透明桌面窗口、独立bot聊天与Codex状态桥已实现；Codex hooks首次接入仍需在 `/hooks` 中信任。
+煤球桌宠开发版：Node.js 24+，首次 `npm ci` 后运行 `npm run pet`。Windows 可双击 `desktop/start.cmd`，macOS 可双击 `desktop/start.command`。首次填写自己的 DeepSeek 与 Fish Audio Key；单击煤球展开语音面板，按住按钮说话、实时显示字幕，松开发送；双击打开文字聊天。[启动、分享与验证](docs/implementation/hedgehog-desktop-companion.md) · [12段96帧动画素材](assets/hedgehog/v1/README.md)。程序和记录在本机，模型和语音服务需要联网；Windows 自动验收配置已加入，尚未实机验证。
 
 已实现可启动的单用户内测工程版：TypeScript strict、Node.js 24+、SQLite、自有有界执行器，AI SDK Core 只负责接入模型。支持 DeepSeek 和 Grok 4.3，默认使用 DeepSeek，附带简单的聊天／Trace 测试 Web。
 
@@ -64,7 +64,7 @@ npm start
 
 下一阶段设计：[角色生活系统工程方案](docs/engineering/character-life-system-plan.md)，覆盖设定、日常作息、事件、角色记忆、聊天接入、开关和分阶段验收；当前为设计，尚未实施。
 
-临时凭据在后台读取的 `env.local`，BYOK 在当前角色数据目录下的 `model-keys.json`，权限均为 0600，已忽略。不要分享这些文件、`data/`、备份或敏感上下文。本版仅监听回环地址；多用户托管、Web Push、Electron 和十万用户容量验证属于后续阶段。
+临时凭据在后台读取的 `env.local`，BYOK 在当前角色数据目录下的 `model-keys.json`，权限均为 0600，已忽略。不要分享这些文件、`data/`、备份或敏感上下文。本版仅监听回环地址；多用户托管、Web Push 和十万用户容量验证属于后续阶段。
 
 ## 验证
 

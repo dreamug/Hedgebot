@@ -21,6 +21,7 @@ const KeysSchema = z
   .object({
     deepseek: ApiKeySchema.optional(),
     grok: ApiKeySchema.optional(),
+    fishAudio: ApiKeySchema.optional(),
   })
   .strict();
 
@@ -52,6 +53,31 @@ export class ModelCredentials {
       source: byok ? "byok" : configured ? "environment" : "missing",
       hasByok: byok,
     };
+  }
+  fishAudioKey(): string | undefined {
+    return this.read().fishAudio ?? this.config.fishAudioApiKey;
+  }
+  petSetupStatus() {
+    const keys = this.read();
+    return {
+      ready: Boolean(keys.deepseek && keys.fishAudio),
+      deepseekConfigured: Boolean(keys.deepseek),
+      fishAudioConfigured: Boolean(keys.fishAudio),
+    };
+  }
+  savePetKeys(deepseek?: string, fishAudio?: string) {
+    // Both services are committed in one private-file replacement. Never store
+    // these secrets in the conversation, database, exports or browser storage.
+    const previous = this.read();
+    if (!(deepseek || previous.deepseek) || !(fishAudio || previous.fishAudio))
+      throw new DomainError("pet_both_keys_required", 400);
+    const keys = {
+      ...previous,
+      deepseek: ApiKeySchema.parse(deepseek || previous.deepseek),
+      fishAudio: ApiKeySchema.parse(fishAudio || previous.fishAudio),
+    };
+    writePrivateJson(this.path, keys);
+    return this.petSetupStatus();
   }
   save(provider: ModelProvider, key: string) {
     const keys = this.read();

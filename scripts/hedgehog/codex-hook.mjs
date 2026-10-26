@@ -18,7 +18,7 @@ async function run() {
   const path = process.argv[index + 1];
   const stat = statSync(path);
   if (
-    (stat.mode & 0o077) !== 0 ||
+    (process.platform !== "win32" && (stat.mode & 0o077) !== 0) ||
     (process.getuid && stat.uid !== process.getuid())
   )
     return;

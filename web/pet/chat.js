@@ -1,20 +1,16 @@
 import { PetClient, errorText, codexLabel } from "./client.js";
 import { CoalSprite } from "./sprite.js";
+import { ReplyAudio } from "./audio.js";
 
 const $ = (id) => document.getElementById(id),
   client = new PetClient();
 const channel = new BroadcastChannel("coal-pet-controls"),
   desktop = window.coalDesktop;
 const avatar = new CoalSprite($("avatar"));
+const player = new ReplyAudio(client);
 let sending = false,
   pending = null,
   fingerprint = "",
-  voice,
-  audio = null,
-  speechController = null,
-  objectURL = null,
-  speechSerial = 0,
-  playingMessage = null,
   initialized = false;
 const draftKey = "coal-chat-draft-v1";
 try {
@@ -57,74 +53,24 @@ async function sendControl(command) {
   }
 }
 function stopAudio() {
-  speechSerial++;
-  speechController?.abort();
-  speechController = null;
-  if (audio) {
-    audio.pause();
-    audio.src = "";
-    audio = null;
-  }
-  if (objectURL) URL.revokeObjectURL(objectURL);
-  objectURL = null;
-  playingMessage = null;
+  player.stop();
   $("voice-stop").disabled = true;
-  channel.postMessage({ type: "audio", playing: false });
-  avatar.play(client.activeRun() ? "think" : "idle");
 }
 async function speak(message) {
-  stopAudio();
-  const serial = speechSerial;
-  playingMessage = {
-    id: message.id,
-    revision: message.revision,
-    epoch: client.snapshot.settings.epoch,
-  };
-  const controller = new AbortController();
-  speechController = controller;
+  channel.postMessage({ type: "stop-audio" });
   $("voice-stop").disabled = false;
   try {
-    const response = await fetch("/v1/speech", {
-      method: "POST",
-      credentials: "same-origin",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Bot-Id": "meiqiu",
-        "X-Local-Token": client.boot.csrfToken,
-      },
-      body: JSON.stringify({
-        kind: "message",
-        id: message.id,
-        expectedRevision: message.revision,
-        expectedEpoch: playingMessage.epoch,
-      }),
-    });
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error);
-    }
-    const blob = await response.blob();
-    if (serial !== speechSerial || controller.signal.aborted) return;
-    objectURL = URL.createObjectURL(blob);
-    audio = new Audio(objectURL);
-    audio.onplaying = () => {
-      channel.postMessage({ type: "audio", playing: true });
-      avatar.play("talk");
-    };
-    audio.onended = stopAudio;
-    audio.onerror = () => {
-      stopAudio();
-      error("这段声音没有播放成功，可以再试一次。 ");
-    };
-    await audio.play();
+    await player.play(message);
   } catch (e) {
-    if (!controller.signal.aborted) {
-      stopAudio();
-      error(errorText(e));
-    }
+    if (e.name !== "AbortError") error(errorText(e));
+  } finally {
+    $("voice-stop").disabled = true;
   }
 }
+player.addEventListener("playing", () => avatar.play("talk"));
+player.addEventListener("stopped", () =>
+  avatar.play(client.activeRun() ? "think" : "idle"),
+);
 function renderMessages(snapshot) {
   const visible = snapshot.messages.filter(
     (m) => m.role === "user" || m.status === "completed",
@@ -143,7 +89,11 @@ function renderMessages(snapshot) {
   if (!visible.length) {
     const p = document.createElement("p");
     p.className = "empty";
-    p.textContent = "唔，我是煤球。想聊代码，还是聊聊今天？";
+    const title = document.createElement("strong"),
+      caption = document.createElement("span");
+    title.textContent = "代码写累了，就来找我。";
+    caption.textContent = "聊聊今天，或者一起发一会儿呆。";
+    p.append(title, caption);
     $("messages").append(p);
   }
   for (const m of visible) {
@@ -192,45 +142,40 @@ function render() {
   if (!s) return;
   if (!initialized) {
     initialized = true;
-    $("model").value = s.settings.model;
-    void client
-      .request("/v1/voice-input")
-      .then((config) => voice.configure(config))
-      .catch(() => {
-        initialized = false;
-      });
+    if (!client.setup?.ready) {
+      if (desktop) desktop.openSetup();
+      else location.replace("/pet/setup");
+    }
   }
-  $("disclosure").hidden = s.settings.remoteDisclosureAcknowledged;
   $("focus").checked = s.settings.focused;
+  $("voice-enabled").checked = client.preferences.voiceEnabled;
+  $("auto-speak").checked = client.preferences.autoSpeak;
+  $("voice-record").disabled = !client.preferences.voiceEnabled;
   $("send").disabled =
     sending ||
     !client.connected ||
+    !client.setup?.ready ||
     !s.settings.remoteDisclosureAcknowledged ||
     !s.model.configured;
   $("cancel-run").hidden = !client.activeRun();
   $("run-status").textContent = client.activeRun()
     ? window.companionRunStatus(client.activeRun(), "煤球", Date.now())
-    : !s.model.configured
-      ? "先在下方模型设置里填写Key，就可以聊天啦。"
-      : "";
-  if (!playingMessage) avatar.play(client.activeRun() ? "think" : "idle");
-  else if (
-    playingMessage.epoch !== s.settings.epoch ||
-    !s.messages.some(
-      (m) =>
-        m.id === playingMessage.id &&
-        m.revision === playingMessage.revision &&
-        !m.deleted,
-    )
+    : "";
+  if (!player.message) avatar.play(client.activeRun() ? "think" : "idle");
+  if (
+    player.message &&
+    (player.message.epoch !== s.settings.epoch ||
+      !s.messages.some(
+        (m) =>
+          m.id === player.message.id && m.revision === player.message.revision,
+      ))
   )
     stopAudio();
-  voice?.contextChanged();
   renderMessages(s);
 }
 client.addEventListener("change", render);
 client.addEventListener("privacy-reset", () => {
   stopAudio();
-  voice?.cancel();
   pending = null;
   $("draft").value = "";
   saveDraft();
@@ -283,14 +228,6 @@ $("cancel-run").addEventListener("click", async () => {
     error(errorText(e));
   }
 });
-$("allow-chat").addEventListener("click", async () => {
-  try {
-    await client.settings({ remoteDisclosureAcknowledged: true });
-    error("");
-  } catch (e) {
-    error(errorText(e));
-  }
-});
 $("focus").addEventListener("change", async () => {
   stopAudio();
   try {
@@ -321,31 +258,39 @@ $("codex-session").addEventListener("change", async () => {
     error(errorText(e));
   }
 });
-$("model-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const model = $("model").value,
-    key = $("model-key").value.trim();
-  try {
-    if (key) {
-      await client.request(
-        `/v1/model-credentials/${model === "grok-4.3" ? "grok" : "deepseek"}`,
-        "PUT",
-        { apiKey: key },
-      );
-      $("model-key").value = "";
-      await client.refresh();
-    }
-    await client.settings({ model });
-    error("");
-  } catch (e) {
-    error(errorText(e));
-  }
+$("edit-keys").addEventListener("click", () => {
+  if (desktop) desktop.openSetup();
+  else location.assign("/pet/setup");
 });
+$("window-close").addEventListener("click", () => desktop?.hideChat());
+$("voice-record").addEventListener("click", () => {
+  stopAudio();
+  if (desktop) desktop.openVoice();
+  else location.assign("/pet");
+});
+for (const [id, key] of [
+  ["voice-enabled", "voiceEnabled"],
+  ["auto-speak", "autoSpeak"],
+])
+  $(id).addEventListener("change", async () => {
+    try {
+      client.preferences = await client.request(
+        "/v1/pet/preferences",
+        "PATCH",
+        { [key]: $(id).checked },
+      );
+      if (!client.preferences.voiceEnabled)
+        channel.postMessage({ type: "stop-audio" });
+      render();
+    } catch (e) {
+      error(errorText(e));
+      render();
+    }
+  });
 $("voice-stop").addEventListener("click", stopAudio);
 channel.onmessage = ({ data }) => {
   if (data.type === "stop-audio") {
     stopAudio();
-    voice?.cancel();
   }
 };
 if (desktop) {
@@ -355,34 +300,13 @@ if (desktop) {
 const off = desktop?.onControl((data) => {
   if (data.type === "suspended" && data.value) {
     stopAudio();
-    voice?.cancel();
   }
   if (data.type === "size") $("pet-size").value = String(data.value);
-});
-voice = window.createVoiceInput({
-  getContext: () =>
-    client.snapshot
-      ? {
-          botId: "meiqiu",
-          epoch: client.snapshot.settings.epoch,
-          csrf: client.boot.csrfToken,
-          allowed: client.snapshot.settings.remoteDisclosureAcknowledged,
-        }
-      : null,
-  stopPlayback: stopAudio,
-  appendText: (text) => {
-    $("draft").value += ($("draft").value ? "\n" : "") + text;
-    saveDraft();
-    $("draft").focus();
-  },
 });
 try {
   await avatar.ready();
   await client.start();
-  if (client.snapshot) {
-    $("model").value = client.snapshot.settings.model;
-    voice.configure(await client.request("/v1/voice-input"));
-  }
+
   const config = await fetch("/pet/config.json").then((r) => r.json());
   $("mode").textContent =
     config.mode === "mock"
@@ -396,13 +320,11 @@ try {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     stopAudio();
-    voice.cancel();
   }
 });
 window.addEventListener("beforeunload", () => {
   off?.();
   stopAudio();
-  voice.cancel();
   client.close();
   avatar.close();
   channel.close();

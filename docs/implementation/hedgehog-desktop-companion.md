@@ -1,72 +1,74 @@
 # 煤球桌宠开发版
 
-2026-10-26。分支 `research/hedgehog-companion`。
+2026-10-26 · 分支 `research/hedgehog-companion`。
 
-## 现在可以做什么
+## 启动和分享给别人
 
-煤球已经是一个可启动的 Electron 桌宠：透明置顶小窗口、像素动画、单击聊天、拖动移动、右键菜单、托盘入口和64/96/128/192尺寸。聊天窗可以收起，煤球继续留在桌面。
-
-复用现有 BotManager / Harness / CM3 记忆与发布检查，独立煤球角色 id 为 `meiqiu`。支持真实模型聊天、取消回复、断线恢复、草稿恢复、安静陪工以及按角色配置模型和Key。12段96帧动画已接入；吃果子、比心、举牌、背蛋糕可由聊天窗或右键菜单触发，浏览器聊天页也能控制桌宠。
-
-Codex观察桥已实现，并通过“实际hook进程 → 本地HTTP桥 → 会话选择 → 原生窗口动画”的受控联调。它仅接收状态元数据；用户在Codex内完成审批。**当前Codex聊天尚需审核并信任项目hooks，不能把受控联调算作已有聊天已经连接。**
-
-## 启动与使用
-
-在Finder中双击项目里的 `desktop/start.command`，或者在项目目录运行：
+这是在本机运行的源码版桌宠。复制或克隆仓库后，安装 Node.js 24 或更高版本，在项目目录运行：
 
 ```sh
+npm ci
 npm run pet
 ```
 
-桌宠聊天页也可从 [http://127.0.0.1:4348/pet/chat](http://127.0.0.1:4348/pet/chat) 打开。之前的4347入口继续作为纯动画素材预览。
+Windows 可以双击 `desktop/start.cmd`：检查 Node 版本，首次自动安装依赖，再启动煤球。macOS 可以双击 `desktop/start.command`（首次先运行 `npm ci`）。正常聊天和语音不依赖 Python、Whisper 或 FFmpeg；FFmpeg 只供开发者运行合成语音验收脚本。
 
-1. 单击煤球或托盘小刺猬打开聊天；按住煤球拖动；右键调大小、切动作、暂停或退出。
-2. 第一次聊天按页面说明启用当前模型。Key沿用后台环境配置，也可在“模型与连接”里为煤球单独保存；Grok / DeepSeek 的Key分别处理。
-3. 勾选“安静陪工”隐藏陪伴气泡与庆祝，不主动产生模型消息。主动问候继续保持当前CM3的关闭边界。
-4. 消息输入支持Enter发送、Shift+Enter换行。断线不会自动重发；结果未确认时手动重试沿用同一个幂等键。未发送草稿和对应幂等键在刷新后保留，隐私epoch变化时清理。
-5. 四个新增动作在网页和原生聊天窗都可触发。跨浏览器控制由受保护的本地接口中转，默认1.5秒拉取一次；原生双窗口间另有即时通道。
+第一次打开会先显示设置页，分别输入自己的 DeepSeek 和 Fish Audio API Key。两个服务都保存后才能聊天；修改设置时，已保存的 Key 可以留空保留。界面只显示“已在本机保存”，不会回显 Key。保存并不等于服务商已验证 Key，错误 Key、余额不足、断网会在实际使用时明确提示。
 
-语音输入和手动朗读沿用项目后台配置。录音先变成可编辑草稿，确认发送后才进入聊天；收起、锁屏或切走聊天页会停止录音和朗读。原生聊天窗朗读时，煤球播放表达性说话动作。真实麦克风授权、音色和长时间语音体验尚未单独验收。
+程序、窗口、SQLite 聊天记录、记忆和 Key 保存在本机。DeepSeek 聊天、Fish Audio 听写及合成声音需要联网，并使用各自账号额度；不是完全离线模型。Key 不写入聊天、数据库、浏览器存储、Git 或导出；默认数据目录 `local-data/hedgehog-app/` 被 Git 忽略。请分享仓库，不要打包这个目录、`env.local` 或备份给别人。
 
-## 接入当前项目的Codex
+聊天页：[http://127.0.0.1:4348/pet/chat](http://127.0.0.1:4348/pet/chat)。4347 继续作为动画素材预览。
 
-本次已运行安装脚本，在本项目 `.codex/hooks.json` 配置了煤球观察器。首次使用：
+## 桌宠交互
 
-1. 在Codex的 `/hooks` 中审核并信任新定义。**这是Codex官方的hook加载要求**，不会由桌宠绕过；普通hook必须信任定义，修改定义后需要重新信任。[官方说明](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks)
-2. 在本项目发起下一个回合；如当前客户端未重新加载项目层，重新打开本项目聊天后再试。
-3. 打开煤球聊天窗，在“跟随的Codex会话”里选择刚收到事件的会话。没有事件时明确显示“Codex尚未连接”，有事件但未选择时显示待选择。
+- **单击煤球**：展开语音小面板，暂不开麦克风。
+- **按住“按住说话”**：等待“正在听写”后说话；面板持续显示当前识别文字和音量变化。
+- **松开按钮**：结束录音，确认最后几个字后自动发送，随后显示并播放煤球的回复。按住时可以停顿，不会因为静默自动发出半句话。单次最长45秒。
+- **取消或按 Escape**：停止这一段语音，不提交未发送的录音。授权期间提前松手，也不会在授权完成后突然开录。连接中断、没有听清、转写降级都不会把临时字幕发送出去。
+- **双击煤球**：打开文字聊天，不启动录音。Enter 发送，Shift+Enter 换行；支持草稿恢复、停止回复和断线续看。
+- 拖动煤球移动；右键调大小、切换动作、暂停或退出；收起聊天窗后煤球仍留在桌面。
 
-如需重新配置或移除：
+语音功能和自动语音回复默认开启，可在“陪伴设置”关闭。“默认开启”指功能可用，仍然要按住按钮才使用麦克风。第一次需要系统麦克风授权；Windows 需要允许桌面应用访问麦克风。锁屏、休眠、页面隐藏或取消时释放输入与播放资源。
+
+界面已重做为紧凑聊天窗、独立首次设置页和煤球上方的语音面板。12段96帧动画可用；吃大果子、冒桃心、举牌“飞飞爱你”、背蛋糕可在聊天底栏或右键菜单触发。支持64/96/128/192尺寸和透明像素命中测试。
+
+## 实时语音的实现
+
+麦克风通过 Chromium `getUserMedia` 与 AudioWorklet 输出单声道 PCM16，每100ms发送一批。本地服务中继到 Fish Audio `transcribe-stream-1` 实时 WebSocket，开启 drafts 并使用 manual turn。录音期间每次 draft 替换当前字幕；松手发送 `audio_done`，只使用 committed 最终文本。音频不落盘，不进入聊天记忆。
+
+浏览器先通过 Cookie + CSRF 申请30秒、单次使用的本地连接票据。Fish Key 只由服务端加入上游请求头。连接限制、音频大小与时间上限、隐私 epoch 变化和断线清理均在服务端检查。失败不降级成“假实时字幕”，也不会自动重发聊天。
+
+回复只朗读已发布、且所属 run 成功完成的文字。MP3 支持边接收边播放；不支持该方式时使用完整音频播放。录音、生成和播放都属于当前语音轮次，开始新轮或取消时清理旧资源。依据：[Fish 实时语音协议](https://docs.fish.audio/api-reference/endpoint/websocket/asr-realtime)、[Electron 麦克风授权](https://www.electronjs.org/docs/latest/api/system-preferences#systempreferencesaskformediaaccessmediatype-macos)。实时模型仍为服务商 Preview 服务。
+
+## Codex 编程陪伴
 
 ```sh
 npm run pet:hooks
-npm run pet:hooks:remove
 ```
 
-安装器保留其他hooks；重复安装不叠加；首次修改已有文件时留一份备份。绝对路径和本机配置位于被Git忽略的项目hook文件，运行中的随机token仅存入权限0600的本地配置文件，不在hook定义或网页中出现。
+然后在 Codex 的 `/hooks` 审核并信任本项目观察器，在项目里发起新回合，再从煤球聊天窗“连接设置”选择会话。这是 [Codex 官方 hooks 信任要求](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks)。桌宠不代替用户审批，也不自行批准、拒绝或继续编程任务。
 
-支持思考、修改文件、等待确认、回合结束及中断。单个工具结束不等于任务完成；Stop只表示该回合结束，不会声称测试通过。并行工具逐个跟踪；当前PermissionRequest未提供tool id时，保守关联同类在途工具。旧回合、重复事件、陈旧时间戳和其他项目路径不能覆盖活动状态；长时间没事件显示状态暂不可确认。
+观察桥只接收思考、修改文件、等待确认、回合结束和中断等白名单状态，不读取会话文件，不转发 prompt、源码、命令和工具输出。Stop 只表示回合结束，不表示测试通过。没有事件或状态陈旧时如实显示，不能把受控联调算作用户当前聊天已经连接。
 
-观察器不读取会话文件，不转发prompt、源码、命令或工具输出，不给Codex添加上下文，不批准、拒绝或继续任务。桥离线时输出空JSON并退出；HTTP等待上限250ms，外层hook超时1秒。
+Windows 使用官方支持的 `commandWindows`，通过编码的 PowerShell 命令处理空格和中文路径；POSIX 使用独立的引号规则。目录边界兼容两种路径分隔符；POSIX 文件权限检查不会误用于 Windows。安装器保留其他 hooks，重复安装不叠加；`npm run pet:hooks:remove` 只移除煤球观察器。桥离线时输出空 JSON，HTTP 等待上限250ms，外层 hook 超时3秒。[配置依据](https://learn.chatgpt.com/docs/hooks#config-shape)
 
-## 数据与进程
+## 进程和数据
 
-默认在 `local-data/hedgehog-app/` 使用独立数据库；模拟入口在 `local-data/hedgehog-mock/`，均被Git忽略。已发送聊天、人格和窗口位置会保留。旧Web的Cookie与煤球Cookie分开，避免同一localhost不同端口相互覆盖。
+复用 BotManager / Harness / CM3 记忆与发布检查，煤球角色 id 为 `meiqiu`，与原小野身份、聊天和记忆隔离。煤球服务使用4348，Codex桥使用4349；Cookie 与原 Web 不同，避免同一 localhost 不同端口覆盖会话。
 
-启动器在外部Node进程运行现有SQLite服务，Electron只负责窗口和小范围IPC，避免直接把Node原生模块加载到Electron的不同ABI中。复用已运行的煤球服务时不取得其关闭权；只清理自己启动的服务。服务沿用实例锁，窗口启用sandbox和context isolation，关闭Node integration、外部导航和任意弹窗。
+SQLite 服务运行在外部 Node 进程，Electron 负责窗口与有限 IPC，避免原生模块 ABI 冲突。退出通过进程消息优雅关闭自己启动的服务，超时才强制结束；复用的既有服务不被关闭。窗口启用 sandbox / context isolation，关闭 Node integration、任意导航和弹窗；系统麦克风权限限定在可见的煤球语音窗口。
 
-本版本在本机开发环境运行，依赖项目目录、Node.js 24+和已安装的依赖；尚未制作可独立分发的签名安装包，未设置开机自启。直接发起Codex编程任务的app-server入口仍是后续功能。
+Windows 入口和兼容改动已实现，增加 `.github/workflows/hedgehog-desktop.yml` 的 Windows/macOS 自动验收。**本次实际运行环境为 macOS，未运行 Windows 真机或远程 CI，不声称 Windows 已完美验收。** 当前仍为源码版，没有独立签名安装包、开机自启或直接发起 Codex 任务的 app-server 入口。
 
-## 验证结果
+## 验证证据
 
-- `npm run verify`：类型检查、54个测试文件的829项测试、构建通过。其中桌宠新增20项，覆盖隔离、幂等、启动队列、身份校验、hook白名单、并行状态、审批、旧回合和安装器保护。
-- `scripts/hedgehog/desktop-smoke.ts`：实际Electron双窗口、浏览器聊天、取消、草稿恢复、窄屏、尺寸、透明像素命中/穿透开关、跨浏览器四个动作、暂停、实际hook进程联动、收起聊天后保留桌宠。模型使用明确标注的本地模拟器。
-- `scripts/hedgehog/live-chat-smoke.ts`：独立临时数据库中的单条合成消息，使用 `deepseek-flash` 完成真实回复；实测7343ms、5次模型调用。回复包含正确煤球身份，没有使用用户聊天或记忆；测试数据库已清理。
-- 真实模型测试发现并修复了执行器启动边缘的队列唤醒问题：输入若在空drain完成与清理之间到达，CM3没有后台tick接手。清理后重新检查queued输入，新增立即提交回归。正常进行中或已执行的工具不会因此重放。
-- 为CM3开发版提供专用模拟器，返回正确的记忆/发布检查协议；最早使用普通MockModel时出现过降级文本，已改为必须断言run completed及模拟正文，避免把失败回复误算为聊天成功。
+最终结果和平台范围见 [hedgehog-verification.json](hedgehog-verification.json)。
 
-合成测试和最终截图结果见 `hedgehog-verification.json`。真实语音、macOS全屏/Spaces、多显示器真实拖动和一小时功耗仍待日常使用验证，未记为通过。
+- `npm run verify`：类型检查、全量单元测试与构建。
+- `npm run test:pet:desktop`：真实 Electron 窗口与 getUserMedia / AudioWorklet，使用 Chromium 合成麦克风、本地 ASR 协议夹具和有效 MP3；检查首次设置、单击只展开、按住实时字幕、松开发送、播放事件、取消不发送、授权拒绝、授权期间松手、断线、双击文字、动画、Codex hook 进程和收起窗口。
+- `npm run smoke:pet:voice`：合成中文语音通过真实 Fish 实时 ASR，在松手前观察 draft；最终文字经过真实 DeepSeek 对话，再通过真实 Fish 合成 MP3。仅使用临时数据库与合成测试文本，清理后不保留用户会话。
+- `npm run smoke:pet:live`：独立合成文本的真实 DeepSeek 回归。
 
-## 工程边界
+合成音频测试不能替代实际麦克风在不同设备、噪声环境和 Windows 权限状态下的体验验收。多显示器拖动、macOS Spaces、一小时功耗和签名安装包仍待后续验证。
 
-Kimi固定参考仍是 `MoonshotAI/kimi-code@9e1248416faa22d9f0b777b91ad092bbf1e19182` 的eventBus实现及dispose/按类型投递测试。本次采用其“状态与订阅随所属会话结束”的不变量：Codex状态是本地短期投影，动作命令有上限和有效期，页面退出清理定时器/订阅，不进入模型记忆。决策为Adapt；不引入DI、第二套代理循环、持久回放或额外工具执行权。
+工程上继续 Adapt Kimi 固定参考 `MoonshotAI/kimi-code@9e1248416faa22d9f0b777b91ad092bbf1e19182` 的会话资源随生命周期释放不变量，不引入第二套代理循环或额外工具执行权。

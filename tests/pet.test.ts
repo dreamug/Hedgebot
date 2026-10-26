@@ -140,8 +140,12 @@ describe("煤球桌宠复用bot服务", () => {
   it("同一幂等键不会重复发消息，聊天不会混入原角色", async () => {
     const x = await setup();
     try {
-      const s = x.coal.store.settings();
-      x.coal.store.saveSettings({ ...s, remoteDisclosureAcknowledged: true });
+      await x.app.inject({
+        method: "PUT",
+        url: "/v1/pet/setup",
+        headers: x.headers,
+        payload: { deepseekKey: "test-ds", fishAudioKey: "test-fish" },
+      });
       const input = {
         method: "POST" as const,
         url: "/v1/threads/local-thread/inputs",
@@ -172,7 +176,8 @@ describe("煤球桌宠复用bot服务", () => {
     const x = await setup();
     try {
       const path = join(x.dir, "codex-bridge.json");
-      expect(statSync(path).mode & 0o777).toBe(0o600);
+      if (process.platform !== "win32")
+        expect(statSync(path).mode & 0o777).toBe(0o600);
       const config = JSON.parse(readFileSync(path, "utf8"));
       const response = await x.app.inject({
         url: "/v1/pet/codex",

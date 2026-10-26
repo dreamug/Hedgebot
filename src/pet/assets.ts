@@ -6,6 +6,11 @@ export function petAssets(projectRoot: string, mode: string) {
   for (const [route, file, type] of [
     ["/pet", "pet.html", "text/html; charset=utf-8"],
     ["/pet/chat", "chat.html", "text/html; charset=utf-8"],
+    ["/pet/setup", "setup.html", "text/html; charset=utf-8"],
+    ["/pet/setup.js", "setup.js", "text/javascript; charset=utf-8"],
+    ["/pet/pcm-worklet.js", "pcm-worklet.js", "text/javascript; charset=utf-8"],
+    ["/pet/voice.js", "voice.js", "text/javascript; charset=utf-8"],
+    ["/pet/audio.js", "audio.js", "text/javascript; charset=utf-8"],
     ["/pet/pet.js", "pet.js", "text/javascript; charset=utf-8"],
     ["/pet/chat.js", "chat.js", "text/javascript; charset=utf-8"],
     ["/pet/client.js", "client.js", "text/javascript; charset=utf-8"],
@@ -42,7 +47,12 @@ export function petAssets(projectRoot: string, mode: string) {
   assets.set("/pet/config.json", {
     type: "application/json",
     body: Buffer.from(
-      JSON.stringify({ kind: "hedgehog-desktop-v1", botId: "meiqiu", mode }),
+      JSON.stringify({
+        kind: "hedgehog-desktop-v1",
+        uiVersion: 2,
+        botId: "meiqiu",
+        mode,
+      }),
     ),
   });
   return assets;

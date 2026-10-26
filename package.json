@@ -13,7 +13,7 @@
     "pet:server": "tsx src/pet-main.ts",
     "pet:hooks": "node scripts/hedgehog/install-hooks.mjs",
     "pet:hooks:remove": "node scripts/hedgehog/install-hooks.mjs --remove",
-    "test:pet": "vitest run tests/pet.test.ts tests/pet-codex.test.ts",
+    "test:pet": "vitest run tests/pet.test.ts tests/pet-codex.test.ts tests/pet-voice.test.ts",
     "test:pet:desktop": "tsx scripts/hedgehog/desktop-smoke.ts",
     "smoke:pet:live": "tsx scripts/hedgehog/live-chat-smoke.ts",
     "build": "tsc -p tsconfig.json && node scripts/copy-memory-runtime.mjs",
@@ -42,23 +42,28 @@
     "memory:release": "tsx scripts/memory-release.ts",
     "conversation:trial": "tsx scripts/conversation-trial.ts",
     "test:memory:performance": "tsx scripts/memory-performance.ts --assert",
-    "test:memory:recall": "tsx scripts/memory-evaluate.ts --assert"
+    "test:memory:recall": "tsx scripts/memory-evaluate.ts --assert",
+    "smoke:pet:voice": "tsx scripts/hedgehog/live-voice-smoke.ts"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "3.0.72",
     "@ai-sdk/xai": "5.0.29",
     "@fastify/cookie": "11.1.3",
+    "@fastify/websocket": "11.3.4",
     "@js-temporal/polyfill": "0.5.1",
+    "@msgpack/msgpack": "3.1.3",
     "ai": "7.0.150",
     "better-sqlite3": "12.11.1",
     "dotenv": "17.4.2",
     "fastify": "5.12.7",
+    "ws": "8.22.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "@types/better-sqlite3": "7.6.13",
     "@types/node": "24.19.2",
+    "@types/ws": "8.18.2",
     "electron": "45.0.0",
     "prettier": "3.9.10",
     "tsx": "4.23.15",

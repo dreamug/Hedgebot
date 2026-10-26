@@ -15,6 +15,7 @@ try {
     loadConfig({
       dataDir: resolve(process.env.PET_DATA_DIR ?? "local-data/hedgehog-app"),
       port: Number(process.env.PET_PORT ?? 4348),
+      transcriptionMode: "fish",
     }),
   );
   runtime = await createPetRuntime(
@@ -27,6 +28,15 @@ try {
   for (const signal of ["SIGINT", "SIGTERM"] as const)
     process.once(signal, () => void stop().then(() => process.exit(0)));
   process.once("disconnect", () => void stop().then(() => process.exit(0)));
+  process.on("message", (message) => {
+    if (
+      message &&
+      typeof message === "object" &&
+      "type" in message &&
+      message.type === "pet-shutdown"
+    )
+      void stop().then(() => process.exit(0));
+  });
 } catch {
   await stop();
   console.error("煤球启动失败，请检查端口、数据目录或是否已有实例。");

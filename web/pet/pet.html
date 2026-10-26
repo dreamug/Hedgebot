@@ -8,14 +8,39 @@
   </head>
   <body class="pet-only">
     <main id="pet-stage">
-      <button id="bubble" hidden aria-label="打开煤球聊天"></button
-      ><canvas
+      <button id="bubble" hidden aria-label="打开文字聊天"></button>
+      <section
+        id="voice-panel"
+        class="voice-panel"
+        hidden
+        aria-label="和煤球说话"
+      >
+        <header>
+          <span class="voice-mark"></span
+          ><strong id="voice-state" aria-live="polite">我在听</strong
+          ><button id="voice-cancel" aria-label="取消语音" class="icon-button">
+            ×
+          </button>
+        </header>
+        <p id="voice-caption">按住下方按钮说话，松开发送。</p>
+        <p id="voice-text" role="status" aria-live="polite"></p>
+        <p id="voice-heard" hidden></p>
+        <div id="voice-bars" class="voice-bars" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <footer>
+          <button id="voice-text-chat">改用文字</button
+          ><button id="voice-hold" type="button">按住说话</button>
+        </footer>
+      </section>
+      <div class="coal-aura" aria-hidden="true"></div>
+      <canvas
         id="coal"
         width="128"
         height="128"
         tabindex="0"
         role="button"
-        aria-label="煤球：单击聊天，拖动移动，右键菜单"
+        aria-label="煤球：单击展开语音，双击文字，拖动移动"
       ></canvas>
     </main>
     <script type="module" src="/pet/pet.js"></script>
