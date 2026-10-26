@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "animations": 12,
+  "frames": 96,
+  "controls": [
+    "size-64",
+    "pause-resume",
+    "dark-background",
+    "checker-background",
+    "single-shot-return",
+    "coding-demo",
+    "mobile-no-overflow"
+  ],
+  "clips": [
+    {
+      "id": "idle",
+      "frameAfter500ms": 1
+    },
+    {
+      "id": "walk",
+      "frameAfter500ms": 4
+    },
+    {
+      "id": "talk",
+      "frameAfter500ms": 3
+    },
+    {
+      "id": "think",
+      "frameAfter500ms": 3
+    },
+    {
+      "id": "code",
+      "frameAfter500ms": 4
+    },
+    {
+      "id": "happy",
+      "frameAfter500ms": 4
+    },
+    {
+      "id": "sleep",
+      "frameAfter500ms": 2
+    },
+    {
+      "id": "wave",
+      "frameAfter500ms": 3
+    },
+    {
+      "id": "fruit",
+      "frameAfter500ms": 3
+    },
+    {
+      "id": "heart",
+      "frameAfter500ms": 3
+    },
+    {
+      "id": "sign",
+      "frameAfter500ms": 3
+    },
+    {
+      "id": "cake",
+      "frameAfter500ms": 3
+    }
+  ],
+  "browserErrors": []
+}

@@ -1,0 +1,210 @@
+:root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  color: #292a2d;
+  background: #f8f8f7;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 46px 28px 28px;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  gap: 16px;
+}
+h1 {
+  font-size: 28px;
+  letter-spacing: -0.7px;
+  margin: 0 0 12px;
+  font-weight: 650;
+}
+h2 {
+  font-size: 17px;
+  margin: 0 0 20px;
+  font-weight: 600;
+}
+p {
+  line-height: 1.7;
+}
+header p {
+  margin: 0;
+  color: #747579;
+  font-size: 14px;
+}
+.edition {
+  font-size: 12px;
+  color: #747579;
+  white-space: nowrap;
+}
+.workspace {
+  border: 1px solid #dededb;
+  background: white;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  margin-bottom: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.stage {
+  min-height: 390px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #f0f0ed;
+}
+.stage[data-background="dark"] {
+  background: #25262a;
+  color: #e3e3e6;
+}
+.stage[data-background="check"] {
+  background: repeating-conic-gradient(#ededed 0% 25%, #fff 0% 50%) 0 / 20px
+    20px;
+}
+#bubble {
+  margin: 0;
+  min-height: 42px;
+  max-width: 80%;
+  font-size: 14px;
+  background: white;
+  color: #404146;
+  padding: 9px 16px;
+  border: 1px solid #dededb;
+  border-radius: 10px;
+}
+canvas {
+  image-rendering: pixelated;
+}
+#pet {
+  width: 128px;
+  height: 128px;
+}
+#current {
+  font-size: 12px;
+  opacity: 0.65;
+  min-height: 18px;
+}
+.controls {
+  padding: 28px;
+}
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 22px;
+}
+button,
+select {
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  border: 1px solid #d9d9d6;
+  border-radius: 5px;
+  background: white;
+  padding: 8px 10px;
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  background: #f0f0ed;
+}
+button[aria-pressed="true"] {
+  border-color: #343539;
+  background: #343539;
+  color: white;
+}
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid #555;
+  outline-offset: 3px;
+}
+label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+select {
+  width: 65%;
+}
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.note {
+  font-size: 12px;
+  color: #77787c;
+  margin: 17px 0 0;
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid #dededb;
+}
+.tile {
+  text-align: center;
+  padding: 18px 4px;
+  border-bottom: 1px solid #dededb;
+}
+.tile canvas {
+  display: block;
+  margin: 0 auto 12px;
+  width: 128px;
+  height: 128px;
+}
+.tile span {
+  font-size: 13px;
+  display: block;
+}
+.tile small {
+  color: #818287;
+  font-size: 11px;
+  display: block;
+  margin-top: 6px;
+}
+footer {
+  color: #818287;
+  font-size: 12px;
+  padding-top: 24px;
+}
+#error {
+  color: #a82323;
+}
+@media (max-width: 700px) {
+  main {
+    padding: 28px 18px;
+  }
+  h1 {
+    font-size: 23px;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .stage {
+    min-height: 320px;
+  }
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .edition {
+    display: none;
+  }
+}

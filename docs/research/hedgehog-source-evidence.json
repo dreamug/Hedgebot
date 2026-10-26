@@ -1,0 +1,89 @@
+{
+  "reviewDate": "2026-10-26",
+  "branch": "research/hedgehog-companion",
+  "baseline": "6d4e5b0",
+  "codexCliVersion": "0.146.0",
+  "schemaGeneration": "codex app-server generate-json-schema --out local-data/hedgehog-research/codex-schema",
+  "files": [
+    {
+      "path": "src/main.ts",
+      "sha256": "af7bc43c103041ac11ca9fec74171f9ae113e9618cbfc7ffb90076ee144ef73e"
+    },
+    {
+      "path": "src/bots.ts",
+      "sha256": "4ba303493741c88e0e6ca256d0a48cffba9441b42b66bb8182b88164caae2b72"
+    },
+    {
+      "path": "src/server.ts",
+      "sha256": "ae50d73139a925b32aa0c4734c6474a74cc88a744afe65922567caafeaaa2b19"
+    },
+    {
+      "path": "src/harness.ts",
+      "sha256": "d9701f4524e520158190b73d1dabd67d655aea0d9a5208b437a04d758f793175"
+    },
+    {
+      "path": "src/domain.ts",
+      "sha256": "408240d90b8c66eb5f6bf94305ca9c5c4276a6510994c988cbe55c8119c4b357"
+    },
+    {
+      "path": "src/memory/stable-config.ts",
+      "sha256": "cc80421a7b2ed39931cfdf56b98318ff3f82908b9efaf8deaab14887dda9d40a"
+    },
+    {
+      "path": "web/run-status.js",
+      "sha256": "a3e7d505456c69a8df244b7a69d3e026f3d858f5713f00b9314b538d2e6d322e"
+    },
+    {
+      "path": "tests/bots.test.ts",
+      "sha256": "ca0013fdd83f32262fe02bdad7a0006dc7f15f3fbf2da7165fa075e65b99ecf0"
+    },
+    {
+      "path": "tests/server.test.ts",
+      "sha256": "57aa5f47d4b7180804599c1a5f4efe3f847e52b2a074e8060a7bab06d991fcfe"
+    },
+    {
+      "path": "tests/run-status.test.ts",
+      "sha256": "6a36188f275f71a4557de7a6d85b542278815b7c2b493b1087b5a005dbcee68c"
+    }
+  ],
+  "schemas": [
+    {
+      "path": "ClientRequest.json",
+      "sha256": "c144b03ec341572756c8296727837c38e99cdedf907aeb7b28e458dd72e16dc0"
+    },
+    {
+      "path": "ServerNotification.json",
+      "sha256": "b0168c86f69029a51bb30adf78307d563cca96237cc76d2244aea6a1f5a7c7d0"
+    },
+    {
+      "path": "v2/ThreadStatusChangedNotification.json",
+      "sha256": "146af6d3702c4f3c844bd10b6b6b3e2b872e958a8d7d822157c19aaa6dc085f6"
+    }
+  ],
+  "kimiSnapshot": {
+    "upstream": "https://github.com/MoonshotAI/kimi-code",
+    "revision": "9e1248416faa22d9f0b777b91ad092bbf1e19182",
+    "snapshotDate": "2026-07-19",
+    "files": [
+      "packages/agent-core-v2/src/app/event/eventBus.ts",
+      "packages/agent-core-v2/src/app/event/eventBusService.ts",
+      "packages/agent-core-v2/test/app/event/eventBus.test.ts"
+    ]
+  },
+  "sources": [
+    "https://learn.chatgpt.com/docs/hooks",
+    "https://learn.chatgpt.com/docs/app-server",
+    "https://www.electronjs.org/docs/latest/api/browser-window",
+    "https://www.electronjs.org/docs/latest/tutorial/custom-window-interactions",
+    "https://www.electronjs.org/docs/latest/tutorial/security",
+    "https://v2.tauri.app/reference/config/#appconfig",
+    "https://www.aseprite.org/docs/sprite-sheet/",
+    "https://www.aseprite.org/docs/cli/"
+  ],
+  "verification": {
+    "offlineSchemaExport": true,
+    "liveCodexHookInstalled": false,
+    "liveCodexTurnStarted": false,
+    "desktopShellInstalled": false
+  }
+}

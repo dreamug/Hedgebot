@@ -1,5 +1,7 @@
 # 私人 AI 陪伴 Harness
 
+煤球桌宠研究分支：[接入方案与实施顺序](docs/research/hedgehog-desktop-companion.md) · [12段96帧动画素材](assets/hedgehog/v1/README.md) · [验证记录](docs/research/hedgehog-desktop-validation.md)。当前提供动画预览与调研，桌面壳和 Codex 状态桥尚未安装。
+
 已实现可启动的单用户内测工程版：TypeScript strict、Node.js 24+、SQLite、自有有界执行器，AI SDK Core 只负责接入模型。支持 DeepSeek 和 Grok 4.3，默认使用 DeepSeek，附带简单的聊天／Trace 测试 Web。
 
 覆盖 M0–M4 的个人版工程能力和 M5 可自动执行的验证。7 天体验采样、14 天稳定观察、人格和记忆质量人工评估仍待真实使用。

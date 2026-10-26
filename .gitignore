@@ -25,3 +25,5 @@ __pycache__/
 !*.example
 *.pem
 *.key
+# Rebuildable local art delivery archive
+/output/hedgehog/

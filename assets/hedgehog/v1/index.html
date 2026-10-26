@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>煤球 · 动画预览</title>
+    <link rel="stylesheet" href="preview.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>煤球，来陪你写代码。</h1>
+          <p id="summary">暖栗棕小刺猬 · 正在载入动作</p>
+        </div>
+        <span class="edition">动作素材 v0.1</span>
+      </header>
+      <section class="workspace" aria-label="动画预览">
+        <div class="stage" id="stage" data-background="light">
+          <p id="bubble" aria-live="polite">唔，我在这里陪你。</p>
+          <canvas
+            id="pet"
+            width="128"
+            height="128"
+            role="img"
+            aria-label="煤球动画"
+          ></canvas>
+          <span id="current">载入动画…</span>
+        </div>
+        <div class="controls">
+          <h2>看看它会做什么</h2>
+          <div id="actions" class="actions"></div>
+          <label
+            >显示大小
+            <select id="size">
+              <option value="64">64 px · 迷你</option>
+              <option value="96">96 px · 小巧</option>
+              <option value="128" selected>128 px · 标准</option>
+              <option value="192">192 px · 放大查看</option>
+            </select></label
+          >
+          <label
+            >播放速度
+            <select id="speed">
+              <option value="0.5">0.5 倍</option>
+              <option value="1" selected>1 倍</option>
+              <option value="1.5">1.5 倍</option>
+            </select></label
+          >
+          <label
+            >背景
+            <select id="background">
+              <option value="light">浅色桌面</option>
+              <option value="dark">深色桌面</option>
+              <option value="check">透明检查</option>
+            </select></label
+          >
+          <div class="buttons">
+            <button id="pause" type="button">暂停</button
+            ><button id="demo" type="button">演示 coding 陪伴</button>
+          </div>
+          <p class="note">
+            这里是动画素材预览。coding 演示使用模拟状态，尚未连接 bot 或 Codex。
+          </p>
+        </div>
+      </section>
+      <section aria-label="全部动作">
+        <h2>动作一览</h2>
+        <div id="gallery" class="gallery"></div>
+      </section>
+      <footer>
+        同一只煤球，独立连续帧。PNG透明底 · 每帧128×128 · 按帧记录时长。
+      </footer>
+      <p id="error" role="alert" hidden></p>
+    </main>
+    <script type="module" src="preview.mjs"></script>
+  </body>
+</html>
