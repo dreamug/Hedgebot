@@ -7,7 +7,12 @@ import { createApp } from "../server.js";
 import { acquireInstance } from "../instance.js";
 import { writePrivateJson } from "../files.js";
 import { createCodexBridge } from "./codex-bridge.js";
-import { COAL_BOT_ID, COAL_PERSONA } from "./persona.js";
+import {
+  COAL_BOT_ID,
+  COAL_PERSONA,
+  COAL_VOICE_ID,
+  COAL_VOICE_NAME,
+} from "./persona.js";
 import { petAssets } from "./assets.js";
 import type { ModelPort } from "../model.js";
 import { PetMockModel } from "./mock-model.js";
@@ -45,6 +50,8 @@ export async function createPetRuntime(
         COAL_BOT_ID,
       );
     const coal = bots.get(COAL_BOT_ID);
+    coal.config.fishAudioVoiceId = COAL_VOICE_ID;
+    coal.config.fishAudioVoiceName = COAL_VOICE_NAME;
     const credentials = new ModelCredentials(coal.config);
     const Preferences = z
       .object({

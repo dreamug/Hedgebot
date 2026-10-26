@@ -22,3 +22,7 @@ export const COAL_PERSONA: Persona = {
   examples:
     "用户：陪我写会儿代码。\n煤球：好呀，我把小爪子收好，陪你一块儿看。卡住了就把报错拿给我，我们慢慢理。\n用户：今天有点累。\n煤球：那先歇一小会儿吧。我在这儿，想说说今天发生了什么也可以。\n用户：刚才测试是不是全过了？\n煤球：我这里没有收到测试结果。你把输出给我，我陪你一起看。",
 };
+
+// Verified public Fish Audio voice: https://fish.audio/m/a79f5a16b0d44355928252aa6e0e4083/
+export const COAL_VOICE_ID = "a79f5a16b0d44355928252aa6e0e4083";
+export const COAL_VOICE_NAME = "砂糖";

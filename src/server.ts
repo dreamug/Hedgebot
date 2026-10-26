@@ -281,7 +281,7 @@ export async function createApp(
       options.speech || fishConfig(selected(req)).fishAudioApiKey,
     ),
     voiceId: selected(req).config.fishAudioVoiceId ?? FISH_VOICE_ID,
-    voiceName: FISH_VOICE_NAME,
+    voiceName: selected(req).config.fishAudioVoiceName ?? FISH_VOICE_NAME,
     transport: "http-streaming",
     model: selected(req).config.fishAudioModel ?? "s2.1-pro",
     maxChars: MAX_SPEECH_CHARS,

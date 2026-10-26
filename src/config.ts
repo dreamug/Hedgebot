@@ -41,6 +41,7 @@ export type AppConfig = {
   fishAudioBaseURL?: string;
   fishAudioModel?: string;
   fishAudioVoiceId?: string;
+  fishAudioVoiceName?: string;
   transcriptionMode?: "fish" | "local";
   localAsrPython?: string;
   localAsrModel?: string;
